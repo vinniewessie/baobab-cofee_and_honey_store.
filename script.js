@@ -162,10 +162,16 @@ function checkout() {
   }
 }
 // WhatsApp Integration
+// WhatsApp Integration
 function generateWhatsAppLink() {
   const name = document.getElementById('name').value || 'Customer';
-  const cartItems = cart.map(item => `${item.name} - $${item.price.toFixed(2)}`).join('%0A');
-  const totalPrice = total.toFixed(2);
+  
+  // Assuming `cart` is an array of objects with properties: name, price, and quantity
+  const cartItems = cart.map(item => 
+    `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`
+  ).join('%0A');
+  
+  const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
   const defaultMessage = `Hi, I need assistance with my order.`;
 
   let message = `*Name:* ${name}%0A`;
@@ -177,6 +183,7 @@ function generateWhatsAppLink() {
   const whatsappLink = `https://wa.me/263714384521?text=${message}`;
   return whatsappLink;
 }
+
 
 // Update WhatsApp Links
 function updateWhatsAppLinks() {
