@@ -191,6 +191,35 @@ function updateWhatsAppLinks() {
   document.getElementById('whatsapp-float').href = whatsappLink;
   document.getElementById('whatsapp-contact').href = whatsappLink;
 }
+/*// Share Cart via WhatsApp (updated)
+function shareCartViaWhatsApp() {
+  if (cart.length === 0) {
+    alert("Your cart is empty. Add some products to share!");
+    return;
+  }
+*/
+  // Create detailed message with quantities and totals
+  let message = "📦 *ORDER SUMMARY* 📦\n\n";
+  message += "Here are the items in my cart:\n\n";
+  
+  cart.forEach((item, index) => {
+    const itemTotal = item.price * item.quantity;
+    message += `${index + 1}. ${item.name}\n`;
+    message += `   Quantity: ${item.quantity}\n`;
+    message += `   Price Each: $${item.price.toFixed(2)}\n`;
+    message += `   Total: $${itemTotal.toFixed(2)}\n\n`;
+  });
+
+  message += `💵 *GRAND TOTAL: $${total.toFixed(2)}*\n\n`;
+  message += "Please confirm this order. Thank you!";
+
+  // Encode the message for WhatsApp URL
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://wa.me/263714384521?text=${encodedMessage}`;
+
+  // Open WhatsApp in a new tab
+  window.open(whatsappUrl, '_blank');
+}
 
 // Event Listeners
 document.getElementById('contact-form').addEventListener('input', updateWhatsAppLinks);
