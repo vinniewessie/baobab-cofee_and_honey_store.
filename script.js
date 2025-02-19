@@ -191,13 +191,13 @@ function updateWhatsAppLinks() {
   document.getElementById('whatsapp-float').href = whatsappLink;
   document.getElementById('whatsapp-contact').href = whatsappLink;
 }
-/*// Share Cart via WhatsApp (updated)
+// Share Cart via WhatsApp (updated)
 function shareCartViaWhatsApp() {
   if (cart.length === 0) {
     alert("Your cart is empty. Add some products to share!");
     return;
   }
-*/
+
   // Create detailed message with quantities and totals
   let message = "📦 *ORDER SUMMARY* 📦\n\n";
   message += "Here are the items in my cart:\n\n";
