@@ -4,22 +4,25 @@ let total = 0;
 // Add to Cart Functionality
 document.querySelectorAll('.add-to-cart').forEach(button => {
   button.addEventListener('click', () => {
-    const product = {
-      name: button.getAttribute('data-name'),
-      price: parseFloat(button.getAttribute('data-price')),
-      quantity: parseInt(button.parentNode.querySelector('.quantity').value)
-    };
+    const productName = button.getAttribute('data-name');
+    const productPrice = parseFloat(button.getAttribute('data-price'));
+    const quantityInput = button.parentNode.querySelector('.quantity'); // Get quantity from input
+    const quantity = parseInt(quantityInput.value) || 1; // Default to 1 if not set
 
     // Check if product already in cart
-    const existingIndex = cart.findIndex(item => item.name === product.name);
-    if (existingIndex > -1) {
-      cart[existingIndex].quantity += product.quantity;
+    const existingIndex = cart.findIndex(item => item.name === productName);
+    
+    if(existingIndex > -1) {
+      // If the product is already in the cart, update its quantity
+      cart[existingIndex].quantity += quantity;
     } else {
-      cart.push(product);
+      // Add new product to cart
+      cart.push({ name: productName, price: productPrice, quantity });
     }
 
+    // Update the cart UI
     updateCartUI();
-    updateWhatsAppLinks(); // Update WhatsApp link when cart changes
+    updateWhatsAppLinks(); // Update WhatsApp link with cart details
   });
 });
 
@@ -29,21 +32,26 @@ function updateCartUI() {
   const cartCount = document.getElementById('cart-count');
   const cartTotal = document.getElementById('cart-total');
 
+  // Clear existing items
   cartItems.innerHTML = '';
-  total = 0;
-  let itemCount = 0;
+  total = 0; // Reset total before recalculating
 
+  let itemCount = 0;
+  
   cart.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
-    total += itemTotal;
-    itemCount += item.quantity;
+    total += itemTotal; // Add item total to the overall total
+    itemCount += item.quantity; // Add the quantity to item count
 
+    // Create table row for each cart item
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${item.name}</td>
       <td>$${item.price.toFixed(2)}</td>
       <td>
-        <input type="number" min="1" value="${item.quantity}" class="form-control cart-quantity" onchange="updateCartQuantity(${index}, this.value)">
+        <input type="number" min="1" value="${item.quantity}" 
+               class="form-control cart-quantity" 
+               onchange="updateCartQuantity(${index}, this.value)">
       </td>
       <td>$${itemTotal.toFixed(2)}</td>
       <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Remove</button></td>
@@ -51,41 +59,48 @@ function updateCartUI() {
     cartItems.appendChild(row);
   });
 
+  // Update the cart count and total
   cartCount.textContent = itemCount;
   cartTotal.textContent = total.toFixed(2);
+
+  // Show or hide the cart section based on whether it's empty or not
   document.getElementById('cart').style.display = cart.length > 0 ? 'block' : 'none';
 }
 
 // Update Quantity in Cart
 function updateCartQuantity(index, newQuantity) {
   newQuantity = parseInt(newQuantity);
-  if (newQuantity > 0) {
+  if(newQuantity > 0) {
     cart[index].quantity = newQuantity;
   } else {
-    cart[index].quantity = 1;
+    cart[index].quantity = 1; // Ensure quantity is never less than 1
   }
   updateCartUI();
+  updateWhatsAppLinks(); // Update WhatsApp link when quantity changes
 }
 
 // Remove from Cart Functionality
 function removeFromCart(index) {
-  cart.splice(index, 1);
+  total -= cart[index].price * cart[index].quantity; // Subtract the item total from the total
+  cart.splice(index, 1); // Remove item from cart
   updateCartUI();
+  updateWhatsAppLinks(); // Update WhatsApp link when item is removed
 }
 
 // Checkout Functionality
 function checkout() {
-  if (cart.length === 0) {
+  if(cart.length === 0) {
     alert("Your cart is empty!");
     return;
   }
 
   const confirmation = confirm(`Confirm purchase of ${cart.length} items for $${total.toFixed(2)}?`);
-  if (confirmation) {
+  if(confirmation) {
     alert(`Thank you for your purchase! Total: $${total.toFixed(2)}`);
     cart = [];
+    total = 0;
     updateCartUI();
-    updateWhatsAppLinks(); // Reset WhatsApp link after purchase
+    updateWhatsAppLinks(); // Reset WhatsApp link after checkout
   }
 }
 
@@ -93,7 +108,11 @@ function checkout() {
 function generateWhatsAppLink() {
   const name = document.getElementById('name').value || 'Customer';
 
-  const cartItems = cart.map(item => `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`).join('%0A');
+  // Create a list of cart items with quantities and prices
+  const cartItems = cart.map(item => 
+    `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`
+  ).join('%0A');
+  
   const totalPrice = total.toFixed(2);
   const defaultMessage = `Hi, I need assistance with my order.`;
 
@@ -103,19 +122,24 @@ function generateWhatsAppLink() {
   }
   message += `*Message:* ${defaultMessage}`;
 
-  return `https://wa.me/263714384521?text=${message}`;
+  const whatsappLink = `https://wa.me/263714384521?text=${message}`;
+  return whatsappLink;
 }
 
+// Update WhatsApp Links
 function updateWhatsAppLinks() {
   const whatsappLink = generateWhatsAppLink();
   document.getElementById('whatsapp-float').href = whatsappLink;
   document.getElementById('whatsapp-contact').href = whatsappLink;
 }
 
-document.getElementById('contact-form').addEventListener('input', updateWhatsAppLinks);
+// Event Listeners
 document.querySelectorAll('.add-to-cart').forEach(button => {
-  button.addEventListener('click', updateWhatsAppLinks); // Update WhatsApp link when cart changes
+  button.addEventListener('click', () => {
+    updateCartUI();
+    updateWhatsAppLinks(); // Ensure WhatsApp link updates when cart changes
+  });
 });
 
-updateWhatsAppLinks(); // Initialize WhatsApp Links
-
+// Initialize WhatsApp Links
+updateWhatsAppLinks();
