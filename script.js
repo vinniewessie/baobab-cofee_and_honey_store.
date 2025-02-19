@@ -210,16 +210,17 @@ function shareCartViaWhatsApp() {
     return;
   }
 
-  // Create a message with cart items and total
-  let message = "Here's my cart:\n";
-  cart.forEach((item, index) => {
-    message += `${index + 1}. ${item.name} - $${item.price.toFixed(2)}\n`;
-  });
-  message += `Total: $${total.toFixed(2)}\n`;
+ // Create a message with cart items and total
+let message = "Here's my cart:\n";
+cart.forEach((item, index) => {
+  message += `${index + 1}. ${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}\n`;
+});
+message += `Total: $${cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}\n`;
 
-  // Encode the message for a WhatsApp URL
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/263714384521?text=${encodedMessage}`;
+// Encode the message for a WhatsApp URL
+const encodedMessage = encodeURIComponent(message);
+const whatsappUrl = `https://wa.me/263714384521?text=${encodedMessage}`;
+
 
   // Open WhatsApp in a new tab
   window.open(whatsappUrl, '_blank');
