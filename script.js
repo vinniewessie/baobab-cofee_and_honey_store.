@@ -4,20 +4,22 @@ let total = 0;
 // Add to Cart Functionality
 document.querySelectorAll('.add-to-cart').forEach(button => {
   button.addEventListener('click', () => {
-    const productName = button.getAttribute('data-name');
-    const productPrice = parseFloat(button.getAttribute('data-price'));
-    const quantity = parseInt(button.parentNode.querySelector('.quantity').value);
+    const product = {
+      name: button.getAttribute('data-name'),
+      price: parseFloat(button.getAttribute('data-price')),
+      quantity: parseInt(button.parentNode.querySelector('.quantity').value)
+    };
 
     // Check if product already in cart
-    const existingIndex = cart.findIndex(item => item.name === productName);
-    if(existingIndex > -1) {
-      cart[existingIndex].quantity += quantity;
+    const existingIndex = cart.findIndex(item => item.name === product.name);
+    if (existingIndex > -1) {
+      cart[existingIndex].quantity += product.quantity;
     } else {
-      cart.push({ name: productName, price: productPrice, quantity: quantity });
+      cart.push(product);
     }
 
     updateCartUI();
-    updateWhatsAppLinks(); // Update WhatsApp link after adding product
+    updateWhatsAppLinks(); // Update WhatsApp link when cart changes
   });
 });
 
@@ -27,12 +29,10 @@ function updateCartUI() {
   const cartCount = document.getElementById('cart-count');
   const cartTotal = document.getElementById('cart-total');
 
-  // Clear existing items
   cartItems.innerHTML = '';
   total = 0;
   let itemCount = 0;
 
-  // Add new items
   cart.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
     total += itemTotal;
@@ -43,9 +43,7 @@ function updateCartUI() {
       <td>${item.name}</td>
       <td>$${item.price.toFixed(2)}</td>
       <td>
-        <input type="number" min="1" value="${item.quantity}" 
-               class="form-control cart-quantity" 
-               onchange="updateCartQuantity(${index}, this.value)">
+        <input type="number" min="1" value="${item.quantity}" class="form-control cart-quantity" onchange="updateCartQuantity(${index}, this.value)">
       </td>
       <td>$${itemTotal.toFixed(2)}</td>
       <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${index})">Remove</button></td>
@@ -61,7 +59,7 @@ function updateCartUI() {
 // Update Quantity in Cart
 function updateCartQuantity(index, newQuantity) {
   newQuantity = parseInt(newQuantity);
-  if(newQuantity > 0) {
+  if (newQuantity > 0) {
     cart[index].quantity = newQuantity;
   } else {
     cart[index].quantity = 1;
@@ -77,27 +75,25 @@ function removeFromCart(index) {
 
 // Checkout Functionality
 function checkout() {
-  if(cart.length === 0) {
+  if (cart.length === 0) {
     alert("Your cart is empty!");
     return;
   }
 
   const confirmation = confirm(`Confirm purchase of ${cart.length} items for $${total.toFixed(2)}?`);
-  if(confirmation) {
+  if (confirmation) {
     alert(`Thank you for your purchase! Total: $${total.toFixed(2)}`);
     cart = [];
     updateCartUI();
+    updateWhatsAppLinks(); // Reset WhatsApp link after purchase
   }
 }
 
 // WhatsApp Integration
 function generateWhatsAppLink() {
   const name = document.getElementById('name').value || 'Customer';
-  
-  const cartItems = cart.map(item => 
-    `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`
-  ).join('%0A');
-  
+
+  const cartItems = cart.map(item => `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`).join('%0A');
   const totalPrice = total.toFixed(2);
   const defaultMessage = `Hi, I need assistance with my order.`;
 
@@ -110,40 +106,16 @@ function generateWhatsAppLink() {
   return `https://wa.me/263714384521?text=${message}`;
 }
 
-// Update WhatsApp Links
 function updateWhatsAppLinks() {
   const whatsappLink = generateWhatsAppLink();
   document.getElementById('whatsapp-float').href = whatsappLink;
   document.getElementById('whatsapp-contact').href = whatsappLink;
 }
 
-// Share Cart via WhatsApp
-function shareCartViaWhatsApp() {
-  if (cart.length === 0) {
-    alert("Your cart is empty. Add some products to share!");
-    return;
-  }
-
-  let message = "📦 *ORDER SUMMARY* 📦\n\n";
-  cart.forEach((item, index) => {
-    const itemTotal = item.price * item.quantity;
-    message += `${index + 1}. ${item.name}\n`;
-    message += `   Quantity: ${item.quantity}\n`;
-    message += `   Price Each: $${item.price.toFixed(2)}\n`;
-    message += `   Total: $${itemTotal.toFixed(2)}\n\n`;
-  });
-
-  message += `💵 *GRAND TOTAL: $${total.toFixed(2)}*\n\n`;
-  message += "Please confirm this order. Thank you!";
-
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/263714384521?text=${encodedMessage}`;
-
-  window.open(whatsappUrl, '_blank');
-}
-
-// Event Listeners
 document.getElementById('contact-form').addEventListener('input', updateWhatsAppLinks);
+document.querySelectorAll('.add-to-cart').forEach(button => {
+  button.addEventListener('click', updateWhatsAppLinks); // Update WhatsApp link when cart changes
+});
 
-// Initialize WhatsApp Links
-updateWhatsAppLinks();
+updateWhatsAppLinks(); // Initialize WhatsApp Links
+
